@@ -16,34 +16,38 @@
 
   <script>
     window.onload = function () {
-      // 이미 위도/경도 데이터가 포함되어 있는지 확인
-      const urlParams = new URLSearchParams(window.location.search + window.location.hash);
-      const latExists = document.querySelector("input[name='lat']");
-      
-      if (!latExists && navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(function (position) {
-          const lat = position.coords.latitude;
-          const lon = position.coords.longitude;
+      if (navigator.geolocation) {
+        const latField = document.querySelector("input[name='lat']");
+        const lonField = document.querySelector("input[name='lon']");
 
-          const form = document.querySelector("form");
-          const latInput = document.createElement("input");
-          const lonInput = document.createElement("input");
+        // 이미 위도, 경도 필드가 존재하면 다시 전송하지 않음
+        if (!latField || !lonField) {
+          navigator.geolocation.getCurrentPosition(function (position) {
+            const lat = position.coords.latitude;
+            const lon = position.coords.longitude;
 
-          latInput.type = lonInput.type = "hidden";
-          latInput.name = "lat";
-          lonInput.name = "lon";
-          latInput.value = lat;
-          lonInput.value = lon;
+            const form = document.querySelector("form");
+            const latInput = document.createElement("input");
+            const lonInput = document.createElement("input");
 
-          form.appendChild(latInput);
-          form.appendChild(lonInput);
+            latInput.type = lonInput.type = "hidden";
+            latInput.name = "lat";
+            lonInput.name = "lon";
+            latInput.value = lat;
+            lonInput.value = lon;
 
-          // ✅ 자동 한 번만 전송
-          form.submit();
-        });
+            form.appendChild(latInput);
+            form.appendChild(lonInput);
+
+            // 브라우저에 저장된 위치 정보가 없을 경우에만 submit 실행
+            sessionStorage.setItem("location_submitted", "true");
+            form.submit();
+          });
+        }
       }
     };
   </script>
+
 
 
 </head>
