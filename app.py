@@ -85,6 +85,27 @@ def check_job_feasibility(job_type, temp, humidity, wind, rain, avg_temp=None, r
     # 기본값
     return "✅ 작업 가능"
 
+# ⬇ 아래 위치에 붙여넣기
+# check_job_feasibility 함수 끝난 직후 줄!
+
+def filter_judgment_by_mode(judgment_text, mode):
+    """
+    mode: 'ok' → ✅ 만 유지
+          'warning' → ❌ 만 유지
+          None → 전체 유지
+    """
+    parts = judgment_text.split("/")
+    filtered = []
+    for part in parts:
+        part = part.strip()
+        if mode == "ok" and "✅" in part:
+            filtered.append(part)
+        elif mode == "warning" and "❌" in part:
+            filtered.append(part)
+        elif mode is None:
+            filtered.append(part)
+    return " / ".join(filtered) if filtered else None
+
 
 @app.route("/", methods=["GET", "POST"])
 def index():
@@ -159,10 +180,20 @@ def index():
     })
 
     df_filtered = df.copy()
-    if filter_value == "ok":
-        df_filtered = df[df["작업 판단"].str.contains("✅")]
-    elif filter_value == "warning":
-        df_filtered = df[df["작업 판단"].str.contains("❌")]
+
+    if selected_job == "all":
+        # 판단 결과 문자열을 필터링
+        df_filtered["작업 판단"] = df_filtered["작업 판단"].apply(
+            lambda j: filter_judgment_by_mode(j, filter_value)
+        )
+        # 모두 걸러졌으면 제외
+        df_filtered = df_filtered[df_filtered["작업 판단"].notna()]
+    else:
+        if filter_value == "ok":
+            df_filtered = df[df["작업 판단"].str.contains("✅")]
+        elif filter_value == "warning":
+            df_filtered = df[df["작업 판단"].str.contains("❌")]
+
 
     return render_template("index.html",
                            df=df_filtered.values.tolist(),
