@@ -16,9 +16,11 @@ JOB_OPTIONS = {
     "all": "전체 작업",
     "concrete": "콘크리트 타설",
     "painting": "도장 작업",
+    "welding": "용접 작업",
+    "tile": "조적/타일 작업",
+    "formwork": "형틀 작업",
     "steel": "고소 작업",
-    "waterproof": "방수 작업",
-    "tile": "조적/타일 작업"
+    "waterproof": "방수 작업"
 }
 
 def check_job_feasibility(job_type, temp, humidity, wind, rain, avg_temp=None, rain_rate=None, welding_method=None, preheated=False):
