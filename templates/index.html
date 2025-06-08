@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>건설 작업 판단 시스템</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@1.1.0"></script>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 40px; }
+    table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+    th, td { border: 1px solid #aaa; padding: 8px; text-align: center; }
+    th { background-color: #f0f0f0; }
+    .warning { color: red; font-weight: bold; }
+    .ok { color: green; font-weight: bold; }
+  </style>
+</head>
+<body>
+
+  <h2>🌤 건설 작업 판단 시스템</h2>
+
+  <form method="post">
+    <label for="job_type">작업 종류 선택:</label>
+    <select name="job_type" onchange="this.form.submit()">
+      {% for key, label in job_options.items() %}
+        <option value="{{ key }}" {% if job_key == key %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+
+    <label><input type="radio" name="filter" value="" onchange="this.form.submit()" {% if not filter %}checked{% endif %}> 전체 보기</label>
+    <label><input type="radio" name="filter" value="ok" onchange="this.form.submit()" {% if filter == 'ok' %}checked{% endif %}> 작업 가능만</label>
+    <label><input type="radio" name="filter" value="warning" onchange="this.form.submit()" {% if filter == 'warning' %}checked{% endif %}> 작업 불가만</label>
+
+    <br><br>
+    <label>표시할 항목 선택:</label><br>
+    <input type="checkbox" name="graph_items" value="temp" {% if 'temp' in graph_items %}checked{% endif %}> 기온
+    <input type="checkbox" name="graph_items" value="humidity" {% if 'humidity' in graph_items %}checked{% endif %}> 습도
+    <input type="checkbox" name="graph_items" value="wind" {% if 'wind' in graph_items %}checked{% endif %}> 풍속
+    <input type="checkbox" name="graph_items" value="rain" {% if 'rain' in graph_items %}checked{% endif %}> 강수량
+
+    <br><br>
+    <label>날짜 범위 선택:</label>
+    <input type="date" name="start_date" value="{{ start_date }}">
+    ~
+    <input type="date" name="end_date" value="{{ end_date }}">
+    <button type="submit">조회</button>
+  </form>
+
+  <h3>✅ 현재 선택된 작업: {{ job_name }}</h3>
+
+  {% if df %}
+    <canvas id="weatherChart" width="1000" height="400"></canvas>
+
+    <table>
+      <tr>
+        {% for col in columns %}
+          <th>{{ col }}</th>
+        {% endfor %}
+      </tr>
+      {% for row in df %}
+        <tr>
+          {% for cell in row %}
+            {% if loop.index0 == 5 %}
+              <td class="{% if '❌' in cell %}warning{% elif '✅' in cell %}ok{% endif %}">{{ cell }}</td>
+            {% else %}
+              <td>{{ cell }}</td>
+            {% endif %}
+          {% endfor %}
+        </tr>
+      {% endfor %}
+    </table>
+
+    <script>
+      const labels = {{ labels|tojson }};
+      const temps = {{ temps|tojson }};
+      const humidities = {{ humidities|tojson }};
+      const winds = {{ winds|tojson }};
+      const rains = {{ rains|tojson }};
+      const judgments = {{ judgments|tojson }};
+      const selectedItems = {{ graph_items|tojson }};
+
+      const datasets = [];
+
+      if (selectedItems.includes("temp")) {
+        datasets.push({ label: '기온 (°C)', data: temps, borderColor: 'red', yAxisID: 'y' });
+      }
+      if (selectedItems.includes("humidity")) {
+        datasets.push({ label: '습도 (%)', data: humidities, borderColor: 'blue', yAxisID: 'y1' });
+      }
+      if (selectedItems.includes("wind")) {
+        datasets.push({ label: '풍속 (m/s)', data: winds, borderColor: 'green', yAxisID: 'y2' });
+      }
+      if (selectedItems.includes("rain")) {
+        datasets.push({ label: '강수량 (mm)', data: rains, borderColor: 'purple', yAxisID: 'y3' });
+      }
+
+      const annotations = labels.map((label, i) => (
+        judgments[i].includes('❌') ? {
+          type: 'line',
+          xMin: i,
+          xMax: i,
+          borderColor: 'red',
+          borderWidth: 2,
+          borderDash: [6, 6],
+          label: {
+            content: judgments[i].replace('❌ ', ''),
+            enabled: true,
+            position: 'start',
+            backgroundColor: 'rgba(255, 0, 0, 0.8)',
+            color: 'white',
+            font: { weight: 'bold' }
+          }
+        } : null
+      )).filter(Boolean);
+
+      const ctx = document.getElementById('weatherChart').getContext('2d');
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: datasets
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { position: 'top' },
+            title: { display: true, text: '시간별 날씨 데이터와 작업 판단' },
+            annotation: {
+              annotations: annotations
+            }
+          },
+          interaction: { mode: 'index', intersect: false },
+          scales: {
+            y: { type: 'linear', display: true, position: 'left' },
+            y1: { type: 'linear', display: true, position: 'right', grid: { drawOnChartArea: false }},
+            y2: { type: 'linear', display: false },
+            y3: { type: 'linear', display: false }
+          }
+        }
+      });
+    </script>
+
+  {% else %}
+    <p style="color:red;">❗ 날씨 데이터를 불러오지 못했습니다.</p>
+  {% endif %}
+
+</body>
+</html>
+
+
+
+
+
+
+
+
