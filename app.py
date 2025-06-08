@@ -181,18 +181,31 @@ def index():
 
     df_filtered = df.copy()
 
+    # if selected_job == "all":
+    #     # 판단 결과 문자열을 필터링
+    #     df_filtered["작업 판단"] = df_filtered["작업 판단"].apply(
+    #         lambda j: filter_judgment_by_mode(j, filter_value)
+    #     )
+    #     # 모두 걸러졌으면 제외
+    #     df_filtered = df_filtered[df_filtered["작업 판단"].notna()]
+    # else:
+    #     if filter_value == "ok":
+    #         df_filtered = df[df["작업 판단"].str.contains("✅")]
+    #     elif filter_value == "warning":
+    #         df_filtered = df[df["작업 판단"].str.contains("❌")]
     if selected_job == "all":
-        # 판단 결과 문자열을 필터링
-        df_filtered["작업 판단"] = df_filtered["작업 판단"].apply(
-            lambda j: filter_judgment_by_mode(j, filter_value)
-        )
-        # 모두 걸러졌으면 제외
-        df_filtered = df_filtered[df_filtered["작업 판단"].notna()]
+        if filter_value:  # ✅ ok나 warning일 경우만 판단 내용 필터링 수행
+            df_filtered["작업 판단"] = df_filtered["작업 판단"].apply(
+                lambda j: filter_judgment_by_mode(j, filter_value)
+            )
+            df_filtered = df_filtered[df_filtered["작업 판단"].notna()]
     else:
         if filter_value == "ok":
             df_filtered = df[df["작업 판단"].str.contains("✅")]
         elif filter_value == "warning":
             df_filtered = df[df["작업 판단"].str.contains("❌")]
+
+
 
 
     # return render_template("index.html",
