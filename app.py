@@ -125,6 +125,10 @@ if __name__ == "__main__":
     app.run(debug=True)
 
 
+print("API KEY:", API_KEY)
+print("API 요청 주소:", url)
+print("API 응답 상태:", response.status_code)
+print("응답 내용:", data)
 
 
 

@@ -13,9 +13,35 @@
     .warning { color: red; font-weight: bold; }
     .ok { color: green; font-weight: bold; }
   </style>
+
+  <script>
+    window.onload = function () {
+      const form = document.querySelector("form");
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(function (position) {
+          const lat = position.coords.latitude;
+          const lon = position.coords.longitude;
+
+          // 기존 입력 요소 생성
+          let latInput = document.createElement("input");
+          let lonInput = document.createElement("input");
+          latInput.type = lonInput.type = "hidden";
+          latInput.name = "lat"; lonInput.name = "lon";
+          latInput.value = lat; lonInput.value = lon;
+
+          // 폼에 추가
+          form.appendChild(latInput);
+          form.appendChild(lonInput);
+
+          // 위치 좌표가 반영된 후 자동 제출
+          form.submit();
+        });
+      }
+    };
+  </script>
+
 </head>
 <body>
-
   <h2>🌤 건설 작업 판단 시스템</h2>
 
   <form method="post">
@@ -124,9 +150,7 @@
           plugins: {
             legend: { position: 'top' },
             title: { display: true, text: '시간별 날씨 데이터와 작업 판단' },
-            annotation: {
-              annotations: annotations
-            }
+            annotation: { annotations: annotations }
           },
           interaction: { mode: 'index', intersect: false },
           scales: {
@@ -138,13 +162,12 @@
         }
       });
     </script>
-
   {% else %}
     <p style="color:red;">❗ 날씨 데이터를 불러오지 못했습니다.</p>
   {% endif %}
-
 </body>
 </html>
+
 
 
 
