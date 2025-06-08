@@ -195,23 +195,45 @@ def index():
             df_filtered = df[df["작업 판단"].str.contains("❌")]
 
 
+    # return render_template("index.html",
+    #                        df=df_filtered.values.tolist(),
+    #                        columns=df.columns.tolist(),
+    #                        job_name=job_name,
+    #                        job_key=selected_job,
+    #                        job_options=JOB_OPTIONS,
+    #                        labels=df["시간"].tolist(),
+    #                        temps=df["기온 (°C)"].tolist(),
+    #                        humidities=df["습도 (%)"].tolist(),
+    #                        winds=df["풍속 (m/s)"].tolist(),
+    #                        rains=df["강수량 (mm)"].tolist(),
+    #                        judgments=df["작업 판단"].tolist(),
+    #                        filter=filter_value,
+    #                        graph_items=graph_items,
+    #                        start_date=start_date.isoformat(),
+    #                        end_date=end_date.isoformat()
+    #                        )
+
+# ✅ return render_template 쪽에서 이 부분 수정
     return render_template("index.html",
-                           df=df_filtered.values.tolist(),
-                           columns=df.columns.tolist(),
-                           job_name=job_name,
-                           job_key=selected_job,
-                           job_options=JOB_OPTIONS,
-                           labels=df["시간"].tolist(),
-                           temps=df["기온 (°C)"].tolist(),
-                           humidities=df["습도 (%)"].tolist(),
-                           winds=df["풍속 (m/s)"].tolist(),
-                           rains=df["강수량 (mm)"].tolist(),
-                           judgments=df["작업 판단"].tolist(),
-                           filter=filter_value,
-                           graph_items=graph_items,
-                           start_date=start_date.isoformat(),
-                           end_date=end_date.isoformat()
-                           )
+        df=df_filtered.values.tolist(),                 # 테이블은 필터된 데이터
+        columns=df.columns.tolist(),
+        job_name=job_name,
+        job_key=selected_job,
+        job_options=JOB_OPTIONS,
+        
+        # ✅ 아래 다섯 줄: 항상 원본 df 기준
+        labels=df["시간"].tolist(),
+        temps=df["기온 (°C)"].tolist(),
+        humidities=df["습도 (%)"].tolist(),
+        winds=df["풍속 (m/s)"].tolist(),
+        rains=df["강수량 (mm)"].tolist(),
+        
+        judgments=df["작업 판단"].tolist(),             # 원본 판단값 기준 (❌ 등 포함)
+        filter=filter_value,
+        graph_items=graph_items,
+        start_date=start_date.isoformat(),
+        end_date=end_date.isoformat()
+    )
 
 if __name__ == "__main__":
     app.run(debug=True)
@@ -221,6 +243,7 @@ if __name__ == "__main__":
 # print("API 요청 주소:", url)
 # print("API 응답 상태:", response.status_code)
 # print("응답 내용:", data)
+
 
 
 
