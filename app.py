@@ -13,6 +13,7 @@ API_KEY = os.getenv("API_KEY")  # .env에서 불러오기
 CITY = "Seoul"
 
 JOB_OPTIONS = {
+    "all": "전체 작업",
     "concrete": "콘크리트 타설",
     "painting": "도장 작업",
     "steel": "고소 작업",
@@ -79,7 +80,19 @@ def index():
         humidity = forecast['main']['humidity']
         wind = forecast['wind']['speed']
         rain = forecast.get('rain', {}).get('3h', 0)
-        status = check_job_feasibility(selected_job, temp, humidity, wind, rain)
+
+        # ✅ 전체 작업일 경우: 모든 작업의 판단 결과를 리스트로 합침
+        if selected_job == "all":
+            status_list = []
+            for job in JOB_OPTIONS:
+                if job == "all":
+                    continue  # '전체'는 건너뛰기
+                result = check_job_feasibility(job, temp, humidity, wind, rain)
+                status_list.append(f"{JOB_OPTIONS[job]}: {result}")
+            status = " / ".join(status_list)
+        else:
+            # 개별 작업일 경우 기존처럼 판단
+            status = check_job_feasibility(selected_job, temp, humidity, wind, rain)
 
         times.append(dt.strftime('%m-%d %H시'))
         temps.append(temp)
@@ -87,6 +100,7 @@ def index():
         winds.append(wind)
         rains.append(rain)
         judgments.append(status)
+
 
     df = pd.DataFrame({
         "시간": times,
