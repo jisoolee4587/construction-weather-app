@@ -16,29 +16,35 @@
 
   <script>
     window.onload = function () {
-      const form = document.querySelector("form");
-      if (navigator.geolocation) {
+      // 이미 위도/경도 데이터가 포함되어 있는지 확인
+      const urlParams = new URLSearchParams(window.location.search + window.location.hash);
+      const latExists = document.querySelector("input[name='lat']");
+      
+      if (!latExists && navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(function (position) {
           const lat = position.coords.latitude;
           const lon = position.coords.longitude;
 
-          // 기존 입력 요소 생성
-          let latInput = document.createElement("input");
-          let lonInput = document.createElement("input");
-          latInput.type = lonInput.type = "hidden";
-          latInput.name = "lat"; lonInput.name = "lon";
-          latInput.value = lat; lonInput.value = lon;
+          const form = document.querySelector("form");
+          const latInput = document.createElement("input");
+          const lonInput = document.createElement("input");
 
-          // 폼에 추가
+          latInput.type = lonInput.type = "hidden";
+          latInput.name = "lat";
+          lonInput.name = "lon";
+          latInput.value = lat;
+          lonInput.value = lon;
+
           form.appendChild(latInput);
           form.appendChild(lonInput);
 
-          // 위치 좌표가 반영된 후 자동 제출
+          // ✅ 자동 한 번만 전송
           form.submit();
         });
       }
     };
   </script>
+
 
 </head>
 <body>
