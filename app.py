@@ -3,10 +3,13 @@ import requests
 import pandas as pd
 from datetime import datetime, timedelta
 import pytz
+import os
+from dotenv import load_dotenv
 
+load_dotenv()
 app = Flask(__name__)
 
-API_KEY = "a00a90d02bc10b21c47605174b7013dc"
+API_KEY = os.getenv("API_KEY")  # .env에서 불러오기
 CITY = "Seoul"
 
 JOB_OPTIONS = {
@@ -43,6 +46,9 @@ def index():
     start_str = request.form.get("start_date")
     end_str = request.form.get("end_date")
 
+    lat = request.form.get("lat")
+    lon = request.form.get("lon")
+
     today = datetime.now(pytz.timezone('Asia/Seoul')).date()
     start_date = datetime.strptime(start_str, "%Y-%m-%d").date() if start_str else today
     end_date = datetime.strptime(end_str, "%Y-%m-%d").date() if end_str else today + timedelta(days=4)
@@ -52,7 +58,11 @@ def index():
 
     job_name = JOB_OPTIONS[selected_job]
 
-    url = f"https://api.openweathermap.org/data/2.5/forecast?q={CITY}&appid={API_KEY}&units=metric"
+    if lat and lon:
+        url = f"https://api.openweathermap.org/data/2.5/forecast?lat={lat}&lon={lon}&appid={API_KEY}&units=metric"
+    else:
+        url = f"https://api.openweathermap.org/data/2.5/forecast?q={CITY}&appid={API_KEY}&units=metric"
+
     response = requests.get(url)
     data = response.json()
     forecast_list = data.get('list', [])
@@ -87,7 +97,6 @@ def index():
         "작업 판단": judgments
     })
 
-    # 테이블에만 필터 적용 (그래프는 항상 전체 데이터 사용)
     df_filtered = df.copy()
     if filter_value == "ok":
         df_filtered = df[df["작업 판단"].str.contains("✅")]
@@ -114,6 +123,7 @@ def index():
 
 if __name__ == "__main__":
     app.run(debug=True)
+
 
 
 
