@@ -21,23 +21,68 @@ JOB_OPTIONS = {
     "tile": "조적/타일 작업"
 }
 
-def check_job_feasibility(job_type, temp, humidity, wind, rain):
+def check_job_feasibility(job_type, temp, humidity, wind, rain, avg_temp=None, rain_rate=None, welding_method=None, preheated=False):
+    # 콘크리트 타설 기준
     if job_type == "concrete":
-        if temp < 5 or temp > 30 or wind >= 7:
-            return "❌ 타설 금지"
+        if avg_temp is not None and avg_temp <= 4:
+            return "❌ 타설 금지 (일평균 기온 ≤ 4℃)"
+        if rain_rate is not None and rain_rate > 3:
+            return "❌ 타설 금지 (강우량 > 3mm/hr)"
+        if temp > 35:
+            return "❌ 타설 금지 (콘크리트 온도 > 35℃)"
+        return "✅ 타설 가능"
+
+    # 도장 작업 기준
     elif job_type == "painting":
-        if humidity > 85 or rain > 0:
-            return "❌ 도장 금지"
+        if temp < 5 or humidity > 85 or rain > 0:
+            return "❌ 도장 금지 (기온 < 5℃, 습도 > 85%, 강우 시)"
+        return "✅ 도장 가능"
+
+    # 용접 기준
+    elif job_type == "welding":
+        if temp < 10:
+            return "❌ 용접 금지 (기온 < 10℃)"
+        if wind >= 5:
+            return "❌ 방풍막 필요 (풍속 ≥ 5m/s)"
+        if welding_method == "TIG" and wind >= 2:
+            return "❌ TIG 용접 금지 (풍속 ≥ 2m/s)"
+        if rain > 0 or humidity > 90:
+            return "❌ 용접 금지 (비·높은 습도)"
+        return "✅ 용접 가능"
+
+    # 타일/조적 시공 기준
+    elif job_type == "tile":
+        if temp < 5:
+            return "❌ 타일 시공 금지 (기온 < 5℃)"
+        if not (18 <= temp <= 22):
+            return "⚠ 접착제 적정 온도권 아님 (18~22℃ 권장)"
+        return "✅ 타일 시공 가능"
+
+    # 형틀(거푸집) 설치/해체 기준
+    elif job_type == "formwork":
+        if wind >= 10:
+            return "❌ 형틀 작업 금지 (풍속 ≥ 10m/s)"
+        if rain > 0:
+            return "⚠ 형틀 습기 주의 (강우 시 안전 점검 필수)"
+        if temp <= 5:
+            return "⚠ 형틀 작업 저온 주의 (기온 ≤ 5℃)"
+        return "✅ 형틀 작업 가능"
+
+    # 고소작업 기준
     elif job_type == "steel":
         if wind >= 10:
-            return "❌ 고소작업 금지"
+            return "❌ 고소작업 금지 (풍속 ≥ 10m/s)"
+        return "✅ 고소작업 가능"
+
+    # 방수 작업 기준
     elif job_type == "waterproof":
-        if rain > 0:
-            return "❌ 방수 금지"
-    elif job_type == "tile":
-        if temp < 0 or rain > 0:
-            return "❌ 조적작업 금지"
+        if rain > 0 or humidity > 85:
+            return "❌ 방수 금지 (강우 또는 습도 > 85%)"
+        return "✅ 방수 가능"
+
+    # 기본값
     return "✅ 작업 가능"
+
 
 @app.route("/", methods=["GET", "POST"])
 def index():
