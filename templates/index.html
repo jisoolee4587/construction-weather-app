@@ -20,7 +20,7 @@
         const latField = document.querySelector("input[name='lat']");
         const lonField = document.querySelector("input[name='lon']");
 
-        // 이미 위도, 경도 필드가 존재하면 다시 전송하지 않음
+        // 이미 입력 필드가 있으면 다시 추가하지 않음
         if (!latField || !lonField) {
           navigator.geolocation.getCurrentPosition(function (position) {
             const lat = position.coords.latitude;
@@ -39,14 +39,17 @@
             form.appendChild(latInput);
             form.appendChild(lonInput);
 
-            // 브라우저에 저장된 위치 정보가 없을 경우에만 submit 실행
-            sessionStorage.setItem("location_submitted", "true");
-            form.submit();
+            // ❗ 추가 안전장치
+            if (!sessionStorage.getItem("location_submitted")) {
+              sessionStorage.setItem("location_submitted", "true");
+              form.submit();
+            }
           });
         }
       }
     };
   </script>
+
 
 
 
